@@ -35,6 +35,18 @@ def get_scalers(config: ExperimentConfig):
 
         input_static_mu, input_static_sigma = assemble_static_input_scalers(config)
 
+    elif config.data.type == 'ecmwf':
+        # TODO - replace with actual scalers
+        n_sur = len(config.data.input_surface_vars)
+        n_ver = len(config.data.input_levels) * len(config.data.input_vertical_vars)
+        n_static = len(config.data.input_static_surface_vars)
+        n_target = len(config.data.output_vars)
+        input_mu = torch.zeros(n_sur + n_ver)
+        input_sigma = torch.ones(n_sur + n_ver)
+        input_static_mu = torch.zeros(n_static)
+        input_static_sigma = torch.ones(n_static)
+        target_mu = torch.zeros(n_target)
+        target_sigma = torch.ones(n_target)
     else:
         raise ValueError(f'{config.data.type} is not a valid config.data.type')
 
@@ -75,6 +87,32 @@ def get_merra2_embedding_module(config: ExperimentConfig,):
 
     return patch_embedding, patch_embedding_static
 
+def get_ecmwf_embedding_module(config: ExperimentConfig,):
+    """
+    Initializes the object required to embed ecmwf data
+    """
+
+    n_parameters = (len(config.data.input_surface_vars) + len(config.data.input_levels) * len(
+        config.data.input_vertical_vars))
+
+
+    patch_embedding = PatchEmbed(
+        patch_size=config.model.downscaling_patch_size,
+        channels=n_parameters * config.data.n_input_timestamps,
+        embed_dim=config.model.downscaling_embed_dim,
+    )
+
+    n_static_parameters = config.model.num_static_channels + len(config.data.input_static_surface_vars)
+    if config.model.residual == 'climate':
+        n_static_parameters += n_parameters
+
+    patch_embedding_static = PatchEmbed(
+        patch_size=config.model.downscaling_patch_size,
+        channels=n_static_parameters,
+        embed_dim=config.model.downscaling_embed_dim,
+    )
+
+    return patch_embedding, patch_embedding_static
 
 def get_merra2_upscaling_module(config: ExperimentConfig,):
     """
@@ -179,6 +217,8 @@ def get_finetune_model(config: ExperimentConfig, logger: Optional[Logger] = None
     #########################################################
     if config.data.type == 'merra2':  # merra2
         embedding, embedding_static = get_merra2_embedding_module(config)
+    elif config.data.type == 'ecmwf':  # ecmwf
+        embedding, embedding_static = get_ecmwf_embedding_module(config)
     else:
         raise ValueError(f'{config.data.type} is not a valid config.data.type')
 
