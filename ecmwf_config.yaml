@@ -1,6 +1,6 @@
 data:
   type: ecmwf
-  data_dir: ecmwf
+  data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
   input_surface_vars:
     - t2m
     - u10

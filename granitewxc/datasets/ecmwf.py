@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 import datetime
 
 def get_analysis_date(file):
-    return datetime.datetime.strptime(file.split('/')[1], '%Y-%m-%dT%H')
+    return datetime.datetime.strptime(file.split('/')[-1], '%Y-%m-%dT%H')
 
 class ECMWFDownscaleDataset(Dataset):
 
