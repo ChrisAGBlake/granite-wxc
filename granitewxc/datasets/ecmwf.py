@@ -42,6 +42,18 @@ class ECMWFDownscaleDataset(Dataset):
         ds1 = ds1.sel(latitude=slice(self.lat_range[1], self.lat_range[0]))
         ds2 = ds2.sel(latitude=slice(self.lat_range[1], self.lat_range[0]))
 
+        # # select lat and lon values to use
+        # lat_vals = np.arange(-80, 80, 0.5)
+        # lon_vals = np.arange(0, 360, 0.5)
+        # lat_idxs = []
+        # for lat in lat_vals:
+        #     lat_idxs.append(np.argmin(np.abs(ds1['latitude'].values - lat)))
+        # lon_idxs = []
+        # for lon in lon_vals:
+        #     lon_idxs.append(np.argmin(np.abs(ds1['longitude'].values - lon)))
+        # ds1 = ds1.isel(dict(latitude=lat_idxs, longitude=lon_idxs))
+        # ds2 = ds2.isel(dict(latitude=lat_idxs, longitude=lon_idxs))
+
         # get the model level indices
         level_idxs = []
         for l in self.levels:

@@ -200,15 +200,26 @@ def get_finetune_model(config: ExperimentConfig, logger: Optional[Logger] = None
     # 0. Setup parameters/scalers
     #########################################################
     # set default kernel size
-    if 'encoder_decoder_kernel_size_per_stage' not in config.model.__dict__:
-        config.model.encoder_decoder_kernel_size_per_stage = [[3]*len(inner) for inner in config.model.encoder_decoder_scale_per_stage]
+    if config.data.type == 'merra2':
+        if 'encoder_decoder_kernel_size_per_stage' not in config.model.__dict__:
+            config.model.encoder_decoder_kernel_size_per_stage = [[3]*len(inner) for inner in config.model.encoder_decoder_scale_per_stage]
 
-    n_output_parameters = len(config.data.output_vars)
-    if config.model.__dict__.get('loss_type', 'patch_rmse_loss')=='cross_entropy':
-        if config.model.__dict__.get('cross_entropy_bin_width_type', 'uniform') == 'uniform':
-            n_output_parameters = config.model.__dict__.get('cross_entropy_n_bins', 512)
-        else:
-            n_output_parameters = len(np.load(config.model.cross_entropy_bin_boundaries_file)) + 1
+        n_output_parameters = len(config.data.output_vars)
+        if config.model.__dict__.get('loss_type', 'patch_rmse_loss')=='cross_entropy':
+            if config.model.__dict__.get('cross_entropy_bin_width_type', 'uniform') == 'uniform':
+                n_output_parameters = config.model.__dict__.get('cross_entropy_n_bins', 512)
+            else:
+                n_output_parameters = len(np.load(config.model.cross_entropy_bin_boundaries_file)) + 1
+    elif config.data.type == 'ecmwf':
+        if 'encoder_decoder_kernel_size_per_stage' not in config.model:
+            config.model.encoder_decoder_kernel_size_per_stage = [[3]*len(inner) for inner in config.model.encoder_decoder_scale_per_stage]
+
+        n_output_parameters = len(config.data.output_vars)
+        if config.model.get('loss_type', 'patch_rmse_loss')=='cross_entropy':
+            if config.model.get('cross_entropy_bin_width_type', 'uniform') == 'uniform':
+                n_output_parameters = config.model.get('cross_entropy_n_bins', 512)
+            else:
+                n_output_parameters = len(np.load(config.model.cross_entropy_bin_boundaries_file)) + 1
 
     scalers = get_scalers(config)
 
@@ -260,6 +271,11 @@ def get_finetune_model(config: ExperimentConfig, logger: Optional[Logger] = None
     #########################################################
     # 5. Putting it all together
     #########################################################
+    if config.data.type == 'merra2':
+        return_logits = config.model.__dict__.get('loss_type') == 'cross_entropy'
+    elif config.data.type == 'ecmwf':
+        return_logits = config.model.get('loss_type') == 'cross_entropy'
+    
     model = ClimateDownscaleFinetuneModel(
         embedding=embedding,
         embedding_static=embedding_static,
@@ -281,9 +297,9 @@ def get_finetune_model(config: ExperimentConfig, logger: Optional[Logger] = None
         patch_size_px_backbone=config.model.token_size,
         mask_unit_size_px_backbone=config.mask_unit_size,
         n_bins=n_output_parameters,
-        return_logits=config.model.__dict__.get('loss_type')=='cross_entropy',
-        residual=config.model.__dict__.get('residual', None),
-        residual_connection=config.model.__dict__.get('residual_connection', False),
+        return_logits=return_logits,
+        residual=config.model.residual,
+        residual_connection=config.model.residual_connection,
         config=config,
     )
 

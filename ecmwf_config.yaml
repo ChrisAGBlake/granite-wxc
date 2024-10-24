@@ -16,17 +16,17 @@ data:
   input_static_surface_vars: 
     - lsm
     - z
-  input_levels: [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
+  input_levels: [850, 1000] # [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
   output_vars:
     - t2m
     - u10
     - v10
     - msl
   n_input_timestamps: 2
-  downscale_factor: 2
+  downscale_factor: 4
   lat_range: [-80, 80]
-  input_size_lat: 800
-  input_size_lon: 1800
+  input_size_lat: 400 # 80
+  input_size_lon: 900 # 180
 
 model:
 
@@ -53,9 +53,8 @@ model:
   encoder_decoder_type: 'conv' # ['conv', 'transformer']
   encoder_decoder_upsampling_mode: pixel_shuffle # ['nearest', 'bilinear', 'pixel_shuffle', 'conv_transpose']
   encoder_decoder_kernel_size_per_stage: [[3], [3]] # Optional, default = 3 for conv_tanspose [[3], [2]]
-  encoder_decoder_scale_per_stage: [[2], [1]] # First list determines before/after backbone
+  encoder_decoder_scale_per_stage: [[2], [2]] # First list determines before/after backbone
   encoder_decoder_conv_channels: 128
-
 
 
 job_id: inference-test
@@ -70,8 +69,8 @@ min_lr: 0.00001
 max_lr: 0.0002
 warm_up_steps: 0
 mask_unit_size:
-  - 50 # 15
-  - 50 # 16
+  - 10 # 15
+  - 10 # 16
 mask_ratio_inputs: 0.0
 mask_ratio_targets: 0.0
 max_batch_size: 16
