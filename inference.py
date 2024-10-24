@@ -22,11 +22,12 @@ if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
-
+device = torch.device('cpu')
 config = OmegaConf.load('ecmwf_config.yaml')
 dataset = ECMWFDownscaleDataset(config)
 dataloader = DataLoader(dataset, batch_size=1)
 model = get_finetune_model(config, logger=None)
+model.to(device)
 batch = next(iter(dataloader))
 for k, v in batch.items():
     print(k, v.shape)
