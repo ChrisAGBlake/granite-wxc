@@ -22,7 +22,7 @@ if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
-device = torch.device('cpu')
+# device = torch.device('cpu')
 config = OmegaConf.load('ecmwf_config.yaml')
 dataset = ECMWFDownscaleDataset(config)
 dataloader = DataLoader(dataset, batch_size=1)

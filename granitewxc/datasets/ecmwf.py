@@ -20,6 +20,7 @@ class ECMWFDownscaleDataset(Dataset):
         self.downscale_factor = config.data.downscale_factor
         self.levels = config.data.input_levels
         self.lat_range = config.data.lat_range
+        self.lon_range = config.data.lon_range
         self.surface_vars = config.data.input_surface_vars
         self.vertical_vars = config.data.input_vertical_vars
         self.static_surface_vars = config.data.input_static_surface_vars
@@ -38,21 +39,10 @@ class ECMWFDownscaleDataset(Dataset):
         ds1 = xr.open_dataset(file1, engine='cfgrib')
         ds2 = xr.open_dataset(file2, engine='cfgrib')
 
-        # select the lat range
-        ds1 = ds1.sel(latitude=slice(self.lat_range[1], self.lat_range[0]))
-        ds2 = ds2.sel(latitude=slice(self.lat_range[1], self.lat_range[0]))
+        # select the lat  and lon range
+        ds1 = ds1.sel(latitude=slice(self.lat_range[1], self.lat_range[0]), longitude=slice(self.lon_range[0], self.lon_range[1]))
+        ds2 = ds2.sel(latitude=slice(self.lat_range[1], self.lat_range[0]), longitude=slice(self.lon_range[0], self.lon_range[1]))
 
-        # # select lat and lon values to use
-        # lat_vals = np.arange(-80, 80, 0.5)
-        # lon_vals = np.arange(0, 360, 0.5)
-        # lat_idxs = []
-        # for lat in lat_vals:
-        #     lat_idxs.append(np.argmin(np.abs(ds1['latitude'].values - lat)))
-        # lon_idxs = []
-        # for lon in lon_vals:
-        #     lon_idxs.append(np.argmin(np.abs(ds1['longitude'].values - lon)))
-        # ds1 = ds1.isel(dict(latitude=lat_idxs, longitude=lon_idxs))
-        # ds2 = ds2.isel(dict(latitude=lat_idxs, longitude=lon_idxs))
 
         # get the model level indices
         level_idxs = []

@@ -24,10 +24,15 @@ data:
     - v10
     - msl
   n_input_timestamps: 2
-  downscale_factor: 4
-  lat_range: [-80, 80]
-  input_size_lat: 400 # 80
-  input_size_lon: 900 # 180
+  downscale_factor: 2
+  # lat_range: [-80, 80]
+  # lon_range: [0, 360]
+  # input_size_lat: 400 
+  # input_size_lon: 900 
+  lat_range: [-10, 10]
+  lon_range: [0, 20]
+  input_size_lat: 100 
+  input_size_lon: 100 
 
 model:
 
@@ -54,7 +59,7 @@ model:
   encoder_decoder_type: 'conv' # ['conv', 'transformer']
   encoder_decoder_upsampling_mode: pixel_shuffle # ['nearest', 'bilinear', 'pixel_shuffle', 'conv_transpose']
   encoder_decoder_kernel_size_per_stage: [[3], [3]] # Optional, default = 3 for conv_tanspose [[3], [2]]
-  encoder_decoder_scale_per_stage: [[2], [2]] # First list determines before/after backbone
+  encoder_decoder_scale_per_stage: [[1], [2]] # First list determines before/after backbone
   encoder_decoder_conv_channels: 128
 
 
