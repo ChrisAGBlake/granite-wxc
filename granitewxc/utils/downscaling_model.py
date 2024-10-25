@@ -39,7 +39,7 @@ def get_scalers(config: ExperimentConfig):
         # TODO - replace with actual scalers
         n_sur = len(config.data.input_surface_vars)
         n_ver = len(config.data.input_levels) * len(config.data.input_vertical_vars)
-        n_static = len(config.data.input_static_surface_vars)
+        n_static = len(config.data.input_static_surface_vars) + config.model.num_static_channels
         n_target = len(config.data.output_vars)
         input_mu = torch.zeros(n_sur + n_ver)
         input_sigma = torch.ones(n_sur + n_ver)

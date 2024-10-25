@@ -1,7 +1,7 @@
 data:
   type: ecmwf
-  # data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
-  data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
+  data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
+  # data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
   input_surface_vars:
     - t2m
     - u10
@@ -37,7 +37,7 @@ data:
 model:
 
   # Platform independent config
-  num_static_channels: 0 # 7
+  num_static_channels: 2 # 7
   embed_dim: 256 # 2560
   token_size:
     - 1

@@ -75,6 +75,18 @@ class ECMWFDownscaleDataset(Dataset):
         for var in self.static_surface_vars:
             static[var] = np.expand_dims(ds1[var].values, axis=0)
 
+        # lat lon static vars
+        n_lat = ds1.latitude.values.shape[0]
+        n_lon = ds1.longitude.values.shape[0]
+        lats = np.zeros((1, n_lat, n_lon), dtype=np.float32)
+        lons = np.zeros((1, n_lat, n_lon), dtype=np.float32)
+        for i in range(n_lat):
+            lats[0, i, :] = ds1.latitude.values[i] / 90
+        for i in range(n_lon):
+            lons[0, :, i] = ds1.longitude.values[i] / 180 - 1
+        static['lat'] = lats
+        static['lon'] = lons
+
         # combine the data
         lat_idxs = np.arange(0, ds1.latitude.values.shape[0], self.downscale_factor)
         lon_idxs = np.arange(0, ds1.longitude.values.shape[0], self.downscale_factor)
@@ -87,7 +99,7 @@ class ECMWFDownscaleDataset(Dataset):
         x_high_res = np.concatenate(x_high_res_vals, axis=0)
         x = x_high_res[:, lat_idxs, :][:, :, lon_idxs]
         y = np.concatenate([surf[0][var] for var in self.output_vars], axis=0)
-        static_y = np.concatenate([static[var] for var in self.static_surface_vars], axis=0)
+        static_y = np.concatenate([static[var] for var in static.keys()], axis=0)
         static_x = static_y[:, lat_idxs, :][:, :, lon_idxs]
 
         return {
