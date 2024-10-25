@@ -23,7 +23,7 @@ data:
     - u10
     - v10
     - msl
-  n_input_timestamps: 2
+  n_input_timestamps: 1
   downscale_factor: 2
   # lat_range: [-80, 80]
   # lon_range: [0, 360]
