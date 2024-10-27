@@ -49,7 +49,7 @@ model:
   drop_path: 0.05
   
   # Accepted values: temporal, climate, none
-  residual: temporal # climate
+  residual: temporal
   
   residual_connection: True
   encoder_shift: False
