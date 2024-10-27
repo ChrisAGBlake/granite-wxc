@@ -1,6 +1,6 @@
 from typing import Optional
 from logging import Logger
-
+import json
 import numpy as np
 import torch
 
@@ -16,6 +16,9 @@ from granitewxc.utils.data import (assemble_input_scalers,
 from granitewxc.models.finetune_model import PatchEmbed, ClimateDownscaleFinetuneModel
 from granitewxc.decoders.downscaling import ConvEncoderDecoder
 
+# load the ecmwf scalers
+with open('scalers.json', 'r') as f:
+    ecmwf_scalers = json.load(f)
 
 def get_scalers(config: ExperimentConfig):
     """
@@ -36,7 +39,8 @@ def get_scalers(config: ExperimentConfig):
         input_static_mu, input_static_sigma = assemble_static_input_scalers(config)
 
     elif config.data.type == 'ecmwf':
-        # TODO - replace with actual scalers
+        
+        # initialize scalers
         n_sur = len(config.data.input_surface_vars)
         n_ver = len(config.data.input_levels) * len(config.data.input_vertical_vars)
         n_static = len(config.data.input_static_surface_vars) + config.model.num_static_channels
@@ -47,6 +51,30 @@ def get_scalers(config: ExperimentConfig):
         input_static_sigma = torch.ones(n_static)
         target_mu = torch.zeros(n_target)
         target_sigma = torch.ones(n_target)
+
+        # fill in the values
+        idx = 0
+        for var in config.data.input_vertical_vars:
+            for level in config.data.input_levels:
+                key = f'{var}_{level}'
+                input_mu[idx] = ecmwf_scalers[key]['mu']
+                input_sigma[idx] = ecmwf_scalers[key]['sigma']
+                idx += 1
+        for var in config.data.input_surface_vars:
+            input_mu[idx] = ecmwf_scalers[var]['mu']
+            input_sigma[idx] = ecmwf_scalers[var]['sigma']
+            idx += 1
+        idx = 0
+        for var in config.data.input_static_surface_vars:
+            input_static_mu[idx] = ecmwf_scalers[var]['mu']
+            input_static_sigma[idx] = ecmwf_scalers[var]['sigma']
+            idx += 1
+        idx = 0
+        for var in config.data.output_vars:
+            target_mu[idx] = ecmwf_scalers[var]['mu']
+            target_sigma[idx] = ecmwf_scalers[var]['sigma']
+            idx += 1
+
     else:
         raise ValueError(f'{config.data.type} is not a valid config.data.type')
 
