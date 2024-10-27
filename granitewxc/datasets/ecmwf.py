@@ -47,7 +47,6 @@ class ECMWFDownscaleDataset(Dataset):
         if self.n_timestamps == 2:
             ds2 = ds2.sel(latitude=slice(self.lat_range[1], self.lat_range[0]), longitude=slice(self.lon_range[0], self.lon_range[1]))
 
-
         # get the model level indices
         level_idxs = []
         for l in self.levels:
@@ -87,6 +86,25 @@ class ECMWFDownscaleDataset(Dataset):
         static['lat'] = lats
         static['lon'] = lons
 
+        # day of year static variables
+        file = file1 if self.n_timestamps == 1 else file2
+        filename = file.split('/')[-1]
+        d = datetime.datetime.strptime(filename, '%Y-%m-%dT%H').replace(tzinfo=datetime.timezone.utc)
+        y_day = d.timetuple().tm_yday
+        static['cos_y_day'] = np.full((1, n_lat, n_lon), np.cos(2 * np.pi * y_day / 366), dtype=np.float32)
+        static['sin_y_day'] = np.full((1, n_lat, n_lon), np.sin(2 * np.pi * y_day / 366), dtype=np.float32)
+
+        # hour of day static variables
+        h = d.hour / 24
+        cos_h = np.zeros((1, n_lat, n_lon), dtype=np.float32)
+        sin_h = np.zeros((1, n_lat, n_lon), dtype=np.float32)
+        for i in range(n_lat):
+            h_val = (h + ds1.latitude.values[i] / 360) % 1
+            cos_h[0, i, :] = np.cos(2 * np.pi * h_val)
+            sin_h[0, i, :] = np.sin(2 * np.pi * h_val)
+        static['cos_hod'] = cos_h
+        static['sin_hod'] = sin_h
+        
         # combine the data
         lat_idxs = np.arange(0, ds1.latitude.values.shape[0], self.downscale_factor)
         lon_idxs = np.arange(0, ds1.longitude.values.shape[0], self.downscale_factor)
