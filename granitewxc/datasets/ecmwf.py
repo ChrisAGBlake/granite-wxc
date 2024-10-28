@@ -9,11 +9,24 @@ def get_analysis_date(file):
     return datetime.datetime.strptime(file.split('/')[-1], '%Y-%m-%dT%H')
 
 class ECMWFDownscaleDataset(Dataset):
+    def __init__(self, config):
+        self.files = list(glob(f'{config.data.parsed_data_dir}/*'))
 
-    def __init__(
-        self,
-        config
-    ):
+    def __getitem__(self, index):
+        file = self.files[index]
+        sample = np.load(file)
+        return {
+            'x': torch.from_numpy(sample['x']),
+            'y': torch.from_numpy(sample['y']),
+            'static_x': torch.from_numpy(sample['static_x']),
+            'static_y': torch.from_numpy(sample['static_y']),
+        }
+
+    def __len__(self) -> int:
+        return len(self.files)
+class ECMWFDownscaleDatasetGRIB(Dataset):
+
+    def __init__(self, config):
         
         self.files = [file for file in glob(f'{config.data.data_dir}/*') if '.idx' not in file]
         self.files.sort()
@@ -104,7 +117,7 @@ class ECMWFDownscaleDataset(Dataset):
             sin_h[0, i, :] = np.sin(2 * np.pi * h_val)
         static['cos_hod'] = cos_h
         static['sin_hod'] = sin_h
-        
+
         # combine the data
         lat_idxs = np.arange(0, ds1.latitude.values.shape[0], self.downscale_factor)
         lon_idxs = np.arange(0, ds1.longitude.values.shape[0], self.downscale_factor)

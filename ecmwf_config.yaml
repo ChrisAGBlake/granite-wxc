@@ -2,6 +2,8 @@ data:
   type: ecmwf
   data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
   # data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
+  parsed_data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf-parsed
+  # parsed_data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf-parsed
   input_surface_vars:
     - t2m
     - u10
@@ -17,7 +19,7 @@ data:
   input_static_surface_vars: 
     - lsm
     - z
-  input_levels: [850, 1000] # [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
+  input_levels:  [200, 400, 600, 850, 925, 1000] 
   output_vars:
     - t2m
     - u10
@@ -33,11 +35,12 @@ data:
   lon_range: [0, 20]
   input_size_lat: 100 
   input_size_lon: 100 
+  window_sz: 20
 
 model:
 
   # Platform independent config
-  num_static_channels: 6 # 7
+  num_static_channels: 6 
   embed_dim: 256 # 2560
   token_size:
     - 1
@@ -62,6 +65,11 @@ model:
   encoder_decoder_scale_per_stage: [[1], [2]] # First list determines before/after backbone
   encoder_decoder_conv_channels: 128
 
+# aws config
+aws:
+  bucket: 'granite-wxc'
+  profile_name: null
+  parsed_data_dir: 'ecmwf-parsed'
 
 job_id: inference-test
 batch_size: 1
