@@ -54,7 +54,8 @@ for i, file in enumerate(val_files):
     chunks = filename.split('_')
     lat_s = int(chunks[1])
     lon_s = int(chunks[2])
-    sz = int(chunks[3])
+    sz = chunks[3]
+    sz = int(sz.split('.')[0])
     lat_e = lat_s + sz
     lon_e = lon_s + sz
     x_lats = np.arange(lat_e, lat_s, 0.2, dtype=np.float32)
