@@ -159,7 +159,6 @@ def main(upload):
 
     # parse the files
     for i in range(len(files)):
-        log.info(f'parsing: {files[i]}, {i+1} of {len(files)}')
         file1 = files[i]
         if i < len(files) - 1 and config.data.n_input_timestamps == 2:
             file2 = files[i+1]
@@ -175,13 +174,14 @@ def main(upload):
             continue
 
         # parse the file(s)
+        log.info(f'parsing: {files[i]}, {i+1} of {len(files)}')
         parse_file(config, file1, file2, upload)
 
         # add the file to the list of parsed files
         parsed_files.append(filename)
+        with open('data/parsed_files.json', 'w') as f:
+            json.dump(parsed_files, f)
         if upload:
-            with open('data/parsed_files.json', 'w') as f:
-                json.dump(parsed_files, f)
             upload_file_s3('data/parsed_files.json', config.aws.bucket, 'parsed_files.json', profile_name=config.aws.profile_name)
 
 if __name__ == '__main__':
