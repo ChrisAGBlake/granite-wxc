@@ -2,6 +2,7 @@
 import random
 import numpy as np
 import torch
+from glob import glob
 from torch.utils.data import DataLoader
 from omegaconf import OmegaConf
 from granitewxc.datasets.ecmwf import ECMWFDownscaleDataset
@@ -24,7 +25,8 @@ else:
     device = torch.device('cpu')
 # device = torch.device('cpu')
 config = OmegaConf.load('ecmwf_config.yaml')
-dataset = ECMWFDownscaleDataset(config)
+files = list(glob(f'{config.data.parsed_data_dir}/*'))
+dataset = ECMWFDownscaleDataset(files)
 dataloader = DataLoader(dataset, batch_size=1)
 model = get_finetune_model(config, logger=None)
 model.to(device)
@@ -35,4 +37,4 @@ with torch.no_grad():
     model.eval()
     batch = {k: v.to(device) for k, v in batch.items()}
     out = model(batch)
-print(out.shape)
+print('out', out.shape)

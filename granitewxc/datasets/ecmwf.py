@@ -9,8 +9,8 @@ def get_analysis_date(file):
     return datetime.datetime.strptime(file.split('/')[-1], '%Y-%m-%dT%H')
 
 class ECMWFDownscaleDataset(Dataset):
-    def __init__(self, config):
-        self.files = list(glob(f'{config.data.parsed_data_dir}/*'))
+    def __init__(self, files):
+        self.files = files
 
     def __getitem__(self, index):
         file = self.files[index]

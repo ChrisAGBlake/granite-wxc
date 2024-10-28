@@ -259,7 +259,7 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
         """
 
         B, _, H, W = batch['x'].shape
-        print('batch x shape:', batch['x'].shape)
+        # print('batch x shape:', batch['x'].shape)
         # Scale inputs
         x_sep_time = batch['x'].view(B, self.n_input_timestamps, -1, H, W) # [batch, time x parameter, lat, lon] -> [batch, time, parameter, lat, lon]
         x_scale = (x_sep_time - self.input_scalers_mu.view(1, 1, -1, 1, 1)) / ( 
@@ -278,8 +278,8 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
 
             # concat with static in channels dimension
             x_static = torch.cat([x_static, climate], dim=1)
-        print('scaled x shape:', x.shape)
-        print('x_static shape:', x_static.shape)
+        # print('scaled x shape:', x.shape)
+        # print('x_static shape:', x_static.shape)
         # tokenization
         if self.embedding_static is None:
             x = torch.cat([x, x_static], dim=1) # combine the inputs and static in channel dimension
@@ -290,8 +290,8 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
             x_shallow_feats = x_embedded + static_embedded
         
         x_upscale = self.upscale(x_shallow_feats)
-        print('x_shallow_feats shape:', x_shallow_feats.shape)
-        print('x_upscale shape:', x_upscale.shape)
+        # print('x_shallow_feats shape:', x_shallow_feats.shape)
+        # print('x_upscale shape:', x_upscale.shape)
         x_tokens = (
             x_upscale.reshape(
                 B,
@@ -305,10 +305,10 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
             .flatten(3, 4)
             .flatten(1, 2)
         )  # [batch, embed, lat//patch_size, lon//patch_size] -> [batch, global seq, local seq, embed]
-        print('x_tokens shape:', x_tokens.shape)
+        # print('x_tokens shape:', x_tokens.shape)
 
         x_deep_feats = self.backbone(x_tokens)  # [batch, global seq, local seq, embed]
-        print('x_deep_feats shape:', x_deep_feats.shape)
+        # print('x_deep_feats shape:', x_deep_feats.shape)
 
         x_deep_feats = x_deep_feats.reshape(
             B,
@@ -319,20 +319,20 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
             -1
         ).permute(0, 5, 1, 3, 2, 4)
         x_deep_feats = x_deep_feats.flatten(4, 5).flatten(2, 3)
-        print('x_deep_feats shape:', x_deep_feats.shape)
+        # print('x_deep_feats shape:', x_deep_feats.shape)
 
 
         x_deep_feats = self.conv_after_backbone(x_deep_feats)
-        print('x_deep_feats shape after conv:', x_deep_feats.shape)
+        # print('x_deep_feats shape after conv:', x_deep_feats.shape)
 
         if self.residual_connection:
-            print('residual connection')
+            # print('residual connection')
             x = x_deep_feats + x_upscale
         else:
             x = x_deep_feats
-        print('x shape before head:', x.shape)
+        # print('x shape before head:', x.shape)
         x = self.head(x)  # [batch, out_channels, lat*scale[0]*scale[1], lon*scale[0]*scale[1]]
-        print('x shape after head:', x.shape)
+        # print('x shape after head:', x.shape)
 
         if self.return_logits:
             x_out = self.to_logits(x)
@@ -340,5 +340,5 @@ class ClimateDownscaleFinetuneModel(FinetuneWrapper):
             x_out = self.output_scalers_sigma * x + batch['climate_y']
         else:
             x_out = self.output_scalers_sigma * x + self.output_scalers_mu # [batch, 1, lat_high_res, lon_high_res]
-        print('x_out shape:', x_out.shape)
+        # print('x_out shape:', x_out.shape)
         return x_out

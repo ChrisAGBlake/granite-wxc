@@ -3,7 +3,6 @@ climatology/
 config.yaml
 pytorch_model.bin
 ecmwf/
-models/
 debug*
 
 # Byte-compiled / optimized / DLL files

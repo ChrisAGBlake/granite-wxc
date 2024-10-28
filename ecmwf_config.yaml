@@ -71,6 +71,16 @@ aws:
   profile_name: null
   parsed_data_dir: 'ecmwf-parsed'
 
+# training config
+train:
+  batch_size: 1
+  num_epochs: 400
+  dl_num_workers: 2
+  train_split: 0.9
+  lr: 0.0001
+
+# old training config
+# TODO update code to use new config structure
 job_id: inference-test
 batch_size: 1
 num_epochs: 400
