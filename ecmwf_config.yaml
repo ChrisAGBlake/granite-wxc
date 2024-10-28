@@ -46,7 +46,7 @@ model:
   token_size:
     - 1
     - 1
-  n_blocks_encoder: 10 # 12 
+  n_blocks_encoder: 8 # 12 
   mlp_multiplier: 4
   n_heads: 12 # 16 
   dropout_rate: 0.0
@@ -79,6 +79,7 @@ train:
   dl_num_workers: 2
   train_split: 0.9
   lr: 0.0001
+  grad_accum_steps: 8
 
 # old training config
 # TODO update code to use new config structure
