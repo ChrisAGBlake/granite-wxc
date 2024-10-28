@@ -23,8 +23,8 @@ sigma = []
 for var in config.data.output_vars:
     mu.append(scalers[var]['mu'])
     sigma.append(scalers[var]['sigma'])
-mu = torch.tensor(mu).reshape(-1, 1, 1)
-sigma = torch.tensor(sigma).reshape(-1, 1, 1)
+mu = np.array(mu).reshape(-1, 1, 1)
+sigma = np.array(sigma).reshape(-1, 1, 1)
 
 # get the indices of the output variables within the input tensor
 idxs = []
