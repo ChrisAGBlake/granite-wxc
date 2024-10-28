@@ -3,8 +3,6 @@ from xarray_regrid import Grid, create_regridding_dataset
 import numpy as np
 from omegaconf import OmegaConf
 import json
-import torch
-from glob import glob
 import logging
 
 log = logging.getLogger(__name__)
@@ -52,10 +50,17 @@ for i, file in enumerate(val_files):
     y = (sample['y'] - mu) / sigma
     
     # get the lats and lons for the sample
-    x_lats = sample['static_x'][2, :, 0] * 90
-    y_lats = sample['static_y'][2, :, 0] * 90
-    x_lons = (sample['static_x'][3, 0, :] + 1) * 180
-    y_lons = (sample['static_y'][3, 0, :] + 1) * 180
+    filename = file.split('/')[-1]
+    chunks = filename.split('_')
+    lat_s = int(chunks[1])
+    lon_s = int(chunks[2])
+    sz = int(chunks[3])
+    lat_e = lat_s + sz
+    lon_e = lon_s + sz
+    x_lats = np.arange(lat_e, lat_s, 0.2, dtype=np.float32)
+    x_lons = np.arange(lon_s, lon_e, 0.2, dtype=np.float32)
+    y_lats = np.arange(lat_e, lat_s, 0.1, dtype=np.float32)
+    y_lons = np.arange(lon_s, lon_e, 0.1, dtype=np.float32)
 
     # generate an xarray dataset from x
     ds = xr.Dataset(
