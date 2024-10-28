@@ -3,6 +3,7 @@ climatology/
 config.yaml
 pytorch_model.bin
 ecmwf/
+ecmwf-parsed/
 wandb/
 debug*
 

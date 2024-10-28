@@ -2,8 +2,9 @@ data:
   type: ecmwf
   data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
   # data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
-  parsed_data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf-parsed
+  # parsed_data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf-parsed
   # parsed_data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf-parsed
+  parsed_data_dir: ecmwf-parsed
   input_surface_vars:
     - t2m
     - u10
@@ -31,8 +32,8 @@ data:
   # lon_range: [0, 360]
   # input_size_lat: 400 
   # input_size_lon: 900 
-  lat_range: [-10, 10]
-  lon_range: [0, 20]
+  # lat_range: [-10, 10]
+  # lon_range: [0, 20]
   input_size_lat: 100 
   input_size_lon: 100 
   window_sz: 20
@@ -41,13 +42,13 @@ model:
 
   # Platform independent config
   num_static_channels: 6 
-  embed_dim: 256 # 2560
+  embed_dim: 1200 # 2560 
   token_size:
     - 1
     - 1
-  n_blocks_encoder: 6 # 12
+  n_blocks_encoder: 10 # 12 
   mlp_multiplier: 4
-  n_heads: 8 # 16
+  n_heads: 12 # 16 
   dropout_rate: 0.0
   drop_path: 0.05
   

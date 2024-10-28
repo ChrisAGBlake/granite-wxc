@@ -70,7 +70,7 @@ for i in range(config.train.num_epochs):
         l.backward()
         optimizer.step()
         tl += l.item()
-        print(i, l.item()) #, end='\r')
+        print(i, l.item(), end='\r')
         i += 1
     log.info(f'epoch: {i}, train loss: {tl}')
     
