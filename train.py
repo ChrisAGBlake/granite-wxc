@@ -55,6 +55,10 @@ random.shuffle(files)
 split = int(len(files) * config.train.train_split)
 train_files = files[:split]
 val_files = files[split:]
+with open('data/train_files.json', 'w') as f:
+    json.dump(train_files, f)
+with open('data/val_files.json', 'w') as f:
+    json.dump(val_files, f)
 train_dataset = ECMWFDownscaleDataset(train_files)
 val_dataset = ECMWFDownscaleDataset(val_files)
 train_dataloader = DataLoader(train_dataset, batch_size=config.train.batch_size, shuffle=True, num_workers=config.train.dl_num_workers)
