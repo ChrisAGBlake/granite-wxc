@@ -58,9 +58,9 @@ for i, file in enumerate(val_files):
     sz = int(sz.split('.')[0])
     lat_e = lat_s + sz
     lon_e = lon_s + sz
-    x_lats = np.arange(lat_e, lat_s, 0.2, dtype=np.float32)
+    x_lats = np.arange(lat_s, lat_e, 0.2, dtype=np.float32)
     x_lons = np.arange(lon_s, lon_e, 0.2, dtype=np.float32)
-    y_lats = np.arange(lat_e, lat_s, 0.1, dtype=np.float32)
+    y_lats = np.arange(lat_s, lat_e, 0.1, dtype=np.float32)
     y_lons = np.arange(lon_s, lon_e, 0.1, dtype=np.float32)
 
     # generate an xarray dataset from x
