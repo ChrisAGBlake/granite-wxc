@@ -34,8 +34,8 @@ else:
 config = OmegaConf.load('ecmwf_config.yaml')
 
 # initialize wandb
-wandb.login()
-wandb.init(entity='chris_blake', project='pw-downscale', config=config)
+# wandb.login()
+# wandb.init(entity='chris_blake', project='pw-downscale', config=config)
 
 # setup the datasets and dataloaders
 files = list(glob(f'{config.data.parsed_data_dir}/*'))
@@ -45,8 +45,8 @@ train_files = files[:split]
 val_files = files[split:]
 train_dataset = ECMWFDownscaleDataset(train_files)
 val_dataset = ECMWFDownscaleDataset(val_files)
-train_dataloader = DataLoader(train_dataset, batch_size=config.train.bach_size, shuffle=True, num_workers=config.train.dl_num_workers)
-val_dataloader = DataLoader(val_dataset, batch_size=config.train.bach_size, shuffle=False, num_workers=config.train.dl_num_workers)
+train_dataloader = DataLoader(train_dataset, batch_size=config.train.batch_size, shuffle=True, num_workers=config.train.dl_num_workers)
+val_dataloader = DataLoader(val_dataset, batch_size=config.train.batch_size, shuffle=False, num_workers=config.train.dl_num_workers)
 
 # setup the model
 model = get_finetune_model(config, logger=None)
@@ -55,11 +55,13 @@ model.to(device)
 # setup the loss function and optimizer
 loss = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config.train.lr)
+print('train dataset size:', len(train_dataset))
 
 for i in range(config.train.num_epochs):
 
     # train
     tl = 0
+    i = 0
     for batch in train_dataloader:
         batch = {k: v.to(device) for k, v in batch.items()}
         optimizer.zero_grad()
@@ -68,6 +70,8 @@ for i in range(config.train.num_epochs):
         l.backward()
         optimizer.step()
         tl += l.item()
+        print(i, l.item()) #, end='\r')
+        i += 1
     log.info(f'epoch: {i}, train loss: {tl}')
     
     # evaluate
@@ -83,4 +87,4 @@ for i in range(config.train.num_epochs):
     model.train()
 
     # log to wandb
-    wandb.log({'train_loss': tl, 'val_loss': vl})
+    # wandb.log({'train_loss': tl, 'val_loss': vl})
