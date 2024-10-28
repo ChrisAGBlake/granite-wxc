@@ -96,6 +96,7 @@ for i, file in enumerate(val_files):
     pred[1, :, :] = new_ds['u10'].values[:199, :199]
     pred[2, :, :] = new_ds['v10'].values[:199, :199]
     pred[3, :, :] = new_ds['msl'].values[:199, :199]
+    y = y[:, :199, :199]
     l = np.mean((pred - y)**2)
     vl += l
     print(f'{i}/{len(val_files)}, loss: {l:.3f}', end='\r')
