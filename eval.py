@@ -91,11 +91,11 @@ for i, file in enumerate(val_files):
     new_ds = ds.regrid.linear(target_dataset)
 
     # calculate the loss
-    pred = np.zeros_like(y)
-    pred[0, :, :] = new_ds['t2m'].values
-    pred[1, :, :] = new_ds['u10'].values
-    pred[2, :, :] = new_ds['v10'].values
-    pred[3, :, :] = new_ds['msl'].values
+    pred = np.zeros((4, 199, 199), dtype=np.float32)
+    pred[0, :, :] = new_ds['t2m'].values[:199, :199]
+    pred[1, :, :] = new_ds['u10'].values[:199, :199]
+    pred[2, :, :] = new_ds['v10'].values[:199, :199]
+    pred[3, :, :] = new_ds['msl'].values[:199, :199]
     l = np.mean((pred - y)**2)
     vl += l
     print(f'{i}/{len(val_files)}, loss: {l:.3f}', end='\r')
