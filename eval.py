@@ -86,5 +86,5 @@ for file in files:
 
     # calculate the loss
     l = np.nanmean((pred - target)**2)
-    print(f'{file}, loss: {l:.3f}')
+    print(f'{file}, loss: {l}')
 
