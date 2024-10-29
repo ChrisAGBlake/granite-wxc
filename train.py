@@ -124,4 +124,8 @@ for n in range(config.train.num_epochs):
     vl /= len(val_dataloader)
     wandb.log({'val_loss': vl})
     log.info(f'epoch: {n}, val loss: {vl}')
+
+    # save the model and optimiser state
+    torch.save(model.state_dict(), f'data/model_{n}.pt')
+    torch.save(optimizer.state_dict(), f'data/optimizer_{n}.pt')
     model.train()
