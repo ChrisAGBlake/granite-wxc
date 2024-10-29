@@ -44,9 +44,17 @@ def parse_file(config, file1, file2, upload):
             log.info(f'window: {lat_s} to {lat_e}, {lon_s} to {lon_e}')
 
             # select the window of interest
-            w_ds1 = ds1.sel(latitude=slice(lat_e, lat_s), longitude=slice(lon_s, lon_e))
+            lat_vals = np.arange(lat_s, lat_e, 0.1)
+            lon_vals = np.arange(lon_s, lon_e, 0.1)
+            lat_idxs = []
+            lon_idxs = []
+            for lat in lat_vals:
+                lat_idxs.append(np.argmin(np.abs(ds1['latitude'].values - lat)))
+            for lon in lon_vals:
+                lon_idxs.append(np.argmin(np.abs(ds1['longitude'].values - lon)))
+            w_ds1 = ds1.isel(latitude=lat_idxs, longitude=lon_idxs)
             if file2 is not None:
-                w_ds2 = ds2.sel(latitude=slice(lat_e, lat_s), longitude=slice(lon_s, lon_e))
+                w_ds2 = ds2.isel(latitude=lat_idxs, longitude=lon_idxs)
 
             # variables with vertical levels
             vert = {}
@@ -71,14 +79,14 @@ def parse_file(config, file1, file2, upload):
                 static[var] = np.expand_dims(w_ds1[var].values, axis=0)
 
             # lat lon static vars
-            n_lat = w_ds1.latitude.values.shape[0]
-            n_lon = w_ds1.longitude.values.shape[0]
+            n_lat = lat_vals.shape[0]
+            n_lon = lon_vals.shape[0]
             lats = np.zeros((1, n_lat, n_lon), dtype=np.float32)
             lons = np.zeros((1, n_lat, n_lon), dtype=np.float32)
             for i in range(n_lat):
-                lats[0, i, :] = w_ds1.latitude.values[i] / 90
+                lats[0, i, :] = lat_vals[i] / 90
             for i in range(n_lon):
-                lons[0, :, i] = w_ds1.longitude.values[i] / 180 - 1
+                lons[0, :, i] = lon_vals[i] / 180 - 1
             static['lat'] = lats
             static['lon'] = lons
 
@@ -95,15 +103,15 @@ def parse_file(config, file1, file2, upload):
             cos_h = np.zeros((1, n_lat, n_lon), dtype=np.float32)
             sin_h = np.zeros((1, n_lat, n_lon), dtype=np.float32)
             for i in range(n_lat):
-                h_val = (h + w_ds1.latitude.values[i] / 360) % 1
+                h_val = (h + lat_vals[i] / 360) % 1
                 cos_h[0, i, :] = np.cos(2 * np.pi * h_val)
                 sin_h[0, i, :] = np.sin(2 * np.pi * h_val)
             static['cos_hod'] = cos_h
             static['sin_hod'] = sin_h
 
             # combine the data
-            lat_idxs = np.arange(0, w_ds1.latitude.values.shape[0], config.data.downscale_factor)
-            lon_idxs = np.arange(0, w_ds1.longitude.values.shape[0], config.data.downscale_factor)
+            lat_idxs = np.arange(0, lat_vals.shape[0], config.data.downscale_factor)
+            lon_idxs = np.arange(0, lon_vals.shape[0], config.data.downscale_factor)
             x_high_res_vals = []
             for i in vert.keys():
                 for var in config.data.input_vertical_vars:
