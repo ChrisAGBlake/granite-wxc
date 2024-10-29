@@ -26,9 +26,6 @@ for file in files:
     # load the grib file
     ds = xr.open_dataset(file, engine='cfgrib')
 
-    # select the variables of interest
-    ds = ds[vars]
-
     # select the latitudes and longitudes of interest
     x_lats = np.arange(-80, 80.05, 0.2, dtype=np.float32)
     x_lons = np.arange(0, 360, 0.2, dtype=np.float32)
@@ -88,6 +85,6 @@ for file in files:
         pred[i, :, :] = new_ds[var].values.copy()
 
     # calculate the loss
-    l = np.mean((pred - target)**2)
+    l = np.nanmean((pred - target)**2)
     print(f'{file}, loss: {l:.3f}')
 
