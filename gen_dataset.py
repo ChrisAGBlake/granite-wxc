@@ -183,7 +183,10 @@ def main(upload):
 
         # parse the file(s)
         log.info(f'parsing: {files[i]}, {i+1} of {len(files)}')
-        parse_file(config, file1, file2, upload)
+        try:
+            parse_file(config, file1, file2, upload)
+        except:
+            log.exception(f'failed to parse: {files[i]}')
 
         # add the file to the list of parsed files
         parsed_files.append(filename)
