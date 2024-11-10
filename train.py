@@ -66,11 +66,13 @@ val_dataloader = DataLoader(val_dataset, batch_size=config.train.batch_size, shu
 
 # setup the model
 model = get_finetune_model(config, logger=None)
+model.load_state_dict(torch.load('data/model.pt'))
 model.to(device)
     
 # setup the loss function and optimizer
 loss = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config.train.lr)
+optimizer.load_state_dict(torch.load('data/optimizer.pt'))
 print('train dataset size:', len(train_dataset))
 print('val dataset size:', len(val_dataset))
 
