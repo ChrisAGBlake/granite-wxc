@@ -1,10 +1,10 @@
 data:
   type: ecmwf
-  data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
-  # data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
+  # data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf
+  data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf
   # parsed_data_dir: /Volumes/ChrisHD/granite-wxc/ecmwf-parsed
-  # parsed_data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf-parsed
-  parsed_data_dir: ecmwf-parsed
+  parsed_data_dir: /media/chris/ChrisHD/granite-wxc/ecmwf-parsed
+  # parsed_data_dir: ecmwf-parsed
   input_surface_vars:
     - t2m
     - u10
@@ -77,8 +77,8 @@ train:
   batch_size: 1
   num_epochs: 400
   dl_num_workers: 2
-  train_split: 0.9
-  lr: 0.0001
+  train_split: 0.95
+  lr: 0.00001
   grad_accum_steps: 8
 
 # old training config
