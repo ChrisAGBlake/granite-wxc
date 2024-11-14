@@ -9,6 +9,8 @@ from granitewxc.datasets.ecmwf import ECMWFDownscaleDataset
 from granitewxc.utils.downscaling_model import get_finetune_model
 import wandb
 import json
+import shutil
+import os
 import logging
 
 log = logging.getLogger(__name__)
@@ -50,15 +52,21 @@ wandb.login()
 wandb.init(entity='chris_blake', project='pw-downscale', config=config)
 
 # setup the datasets and dataloaders
-files = list(glob(f'{config.data.parsed_data_dir}/*'))
-random.shuffle(files)
-split = int(len(files) * config.train.train_split)
-train_files = files[:split]
-val_files = files[split:]
-with open('data/train_files.json', 'w') as f:
-    json.dump(train_files, f)
-with open('data/val_files.json', 'w') as f:
-    json.dump(val_files, f)
+if os.path.isfile('data/train_files.json'):
+    with open('data/train_files.json', 'r') as f:
+        train_files = json.load(f)
+    with open('data/val_files.json', 'r') as f:
+        val_files = json.load(f)
+else:
+    files = list(glob(f'{config.data.parsed_data_dir}/*'))
+    random.shuffle(files)
+    split = int(len(files) * config.train.train_split)
+    train_files = files[:split]
+    val_files = files[split:]
+    with open('data/train_files.json', 'w') as f:
+        json.dump(train_files, f)
+    with open('data/val_files.json', 'w') as f:
+        json.dump(val_files, f)
 train_dataset = ECMWFDownscaleDataset(train_files)
 val_dataset = ECMWFDownscaleDataset(val_files)
 train_dataloader = DataLoader(train_dataset, batch_size=config.train.batch_size, shuffle=True, num_workers=config.train.dl_num_workers)
@@ -75,7 +83,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=config.train.lr)
 optimizer.load_state_dict(torch.load('data/optimizer.pt'))
 print('train dataset size:', len(train_dataset))
 print('val dataset size:', len(val_dataset))
-
+best_loss = 0.00053
 for n in range(config.train.num_epochs):
 
     # train
@@ -130,4 +138,10 @@ for n in range(config.train.num_epochs):
     # save the model and optimiser state
     torch.save(model.state_dict(), 'data/model.pt')
     torch.save(optimizer.state_dict(), 'data/optimizer.pt')
+    if vl < best_loss:
+        log.info('new best model')
+        best_loss = vl
+        shutil.copy('data/model.pt', 'data/best_model.pt')
+        shutil.copy('data/optimizer.pt', 'data/best_optimizer.pt')
+        
     model.train()
