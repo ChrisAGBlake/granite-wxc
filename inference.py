@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import datetime
 import xarray as xr
+import cfgrib
 from xarray_regrid import Grid, create_regridding_dataset
 from omegaconf import OmegaConf
 from granitewxc.datasets.ecmwf import ECMWFDownscaleDataset
@@ -226,14 +227,15 @@ def downscale_analysis(file1, file2, input_resolution, output_resolution, date):
     downsale_ds.to_netcdf('data/downscaled.nc')
     return 'data/downscaled.nc'
 
-def downscale_aifs(file, analysis_file, input_resolution, output_resolution, date):
+def downscale_aifs(aifs_file, analysis_file, input_resolution, output_resolution, date):
 
     # load the file to downscale
-    ds1 = xr.open_dataset(file, engine='cfgrib')
+    # ds1 = xr.open_dataset(file, engine='cfgrib')
+    datasets = cfgrib.open_datasets(aifs_file)
 
     # check if the longitude values are -180 to 180 or 0 to 360
     lon_0 = True
-    if np.min(ds1['longitude'].values) < -179:
+    if np.min(datasets[0]['longitude'].values) < -179:
         lon_0 = False
 
     # load the analysis file and scale to the output resolution only including the required variables
@@ -261,9 +263,15 @@ def downscale_aifs(file, analysis_file, input_resolution, output_resolution, dat
 
     # select the vertical levels
     level_idxs = []
+    ds = None
+    for ds in datasets:
+        if 'isobaricInhPa' in ds:
+            break
     for l in config.data.input_levels:
-        level_idxs.append(np.argmin(np.abs(ds1['isobaricInhPa'].values - l)))
-    ds1 = ds1.isel(isobaricInhPa=level_idxs)
+        level_idxs.append(np.argmin(np.abs(ds['isobaricInhPa'].values - l)))
+    for i, ds in enumerate(datasets):
+        if 'isobaricInhPa' in ds:
+            datasets[i] = ds.isel(isobaricInhPa=level_idxs)
 
     # setup the downscaled dataset
     lat_vals = np.arange(-75, 75, output_resolution)
@@ -296,12 +304,15 @@ def downscale_aifs(file, analysis_file, input_resolution, output_resolution, dat
             lat_idxs = []
             lon_idxs = []
             for lat in input_lat_vals:
-                lat_idxs.append(np.argmin(np.abs(ds1['latitude'].values - lat)))
+                lat_idxs.append(np.argmin(np.abs(datasets[0]['latitude'].values - lat)))
             for lon in input_lon_vals:
                 if not lon_0 and lon > 180:
                     lon -= 360
-                lon_idxs.append(np.argmin(np.abs(ds1['longitude'].values - lon)))
-            w_ds1 = ds1.isel(latitude=lat_idxs, longitude=lon_idxs)
+                lon_idxs.append(np.argmin(np.abs(datasets[0]['longitude'].values - lon)))
+            # w_ds1 = ds1.isel(latitude=lat_idxs, longitude=lon_idxs)
+            w_datasets = []
+            for ds in datasets:
+                w_datasets.append(ds.isel(latitude=lat_idxs, longitude=lon_idxs))
             output_lat_vals = np.arange(lat_s, lat_e, output_resolution)
             output_lon_vals = np.arange(lon_s, lon_e, output_resolution)
             lat_idxs = []
@@ -314,26 +325,26 @@ def downscale_aifs(file, analysis_file, input_resolution, output_resolution, dat
 
             # variables with vertical levels
             vert = {}
-            dss = [w_ds1]
-            for i, ds in enumerate(dss):
-                vert[i] = {}
-                for var in config.data.aifs_vertical_vars:
-                    vert[i][var] = ds[var].values
-                    if var == 'gh':
-                        vert[i][var] *= 9.80665
+            for var in config.data.aifs_vertical_vars:
+                for ds in w_datasets:
+                    if var in ds:
+                        vert[var] = ds[var].values
+                        if var == 'gh':
+                            vert[var] *= 9.80665
+                        break
 
             # surface only variables
             surf = {}
-            for i, ds in enumerate(dss):
-                surf[i] = {}
-                for var in config.data.aifs_surface_vars:
-                    surf[i][var] = np.expand_dims(ds[var].values, axis=0)
+            for var in config.data.aifs_surface_vars:
+                for ds in w_datasets:
+                    if var in ds:
+                        surf[var] = np.expand_dims(ds[var].values, axis=0)
+                        break
                     
             # static surface variables
             input_static = {}
             output_static = {}
             for var in config.data.input_static_surface_vars:
-                # input_static[var] = np.expand_dims(w_ds1[var].values, axis=0)
                 lat_idxs = np.arange(0, output_lat_vals.shape[0], config.data.downscale_factor, dtype=np.int32)
                 lon_idxs = np.arange(0, output_lon_vals.shape[0], config.data.downscale_factor, dtype=np.int32)
                 input_static[var] = np.expand_dims(w_analysis[var].values, axis=0)[:, lat_idxs, :][:, :, lon_idxs]
@@ -369,11 +380,10 @@ def downscale_aifs(file, analysis_file, input_resolution, output_resolution, dat
 
             # combine the data
             x_vals = []
-            for i in vert.keys():
-                for var in config.data.aifs_vertical_vars:
-                    x_vals.append(vert[i][var])
-                for var in config.data.aifs_surface_vars:
-                    x_vals.append(surf[i][var])
+            for var in config.data.aifs_vertical_vars:
+                x_vals.append(vert[var])
+            for var in config.data.aifs_surface_vars:
+                x_vals.append(surf[var])
             x = np.concatenate(x_vals, axis=0)
             static_x = np.concatenate([input_static[var] for var in input_static.keys()], axis=0)
             static_y = np.concatenate([output_static[var] for var in output_static.keys()], axis=0)
@@ -396,7 +406,7 @@ def downscale_aifs(file, analysis_file, input_resolution, output_resolution, dat
             lat_idx_e = lat_idx_s + output_lat_vals.shape[0]
             lon_idx_s = np.argmin(np.abs(lon_vals - output_lon_vals[0]))
             lon_idx_e = lon_idx_s + output_lon_vals.shape[0]
-            log.info(f'lat_idx_s: {lat_idx_s}, lat_idx_e: {lat_idx_e}, lon_idx_s: {lon_idx_s}, lon_idx_e: {lon_idx_e}')
+            # log.info(f'lat_idx_s: {lat_idx_s}, lat_idx_e: {lat_idx_e}, lon_idx_s: {lon_idx_s}, lon_idx_e: {lon_idx_e}')
             for i, var in enumerate(config.data.output_vars):
                 downsale_ds[var].values[lat_idx_s:lat_idx_e, lon_idx_s:lon_idx_e] = out[0, i].cpu().numpy()
 
@@ -495,8 +505,8 @@ if __name__ == '__main__':
     input_resolution = 0.25
     output_resolution = 0.125
     # downscale_analysis(analysis_file, None, input_resolution, output_resolution, date)
-    downscale_aifs(aifs_file, analysis_file, input_resolution, output_resolution, date)
-    plot('data/downscaled.nc')
-    plot_interpolated_analysis(analysis_file)
-    plt.show()
+    # downscale_aifs(aifs_file, analysis_file, input_resolution, output_resolution, date)
+    # plot('data/downscaled.nc')
+    # plot_interpolated_analysis(analysis_file)
+    # plt.show()
     # compare_rmse('data/downscaled.nc', analysis_file)

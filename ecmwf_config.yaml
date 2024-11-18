@@ -18,7 +18,7 @@ data:
     - q
     - gh
   aifs_surface_vars:
-    - skt
+    - t2m
     - u10
     - v10
     - msl
