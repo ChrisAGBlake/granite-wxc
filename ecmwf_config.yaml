@@ -17,6 +17,18 @@ data:
     - w
     - q
     - gh
+  aifs_surface_vars:
+    - skt
+    - u10
+    - v10
+    - msl
+  aifs_vertical_vars:
+    - t
+    - u
+    - v
+    - w
+    - q
+    - z
   input_static_surface_vars: 
     - lsm
     - z
